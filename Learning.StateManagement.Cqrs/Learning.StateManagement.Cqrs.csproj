@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Projections\CarCounterProjection.cs" />
     <Compile Include="Domain\CarAggregate.cs" />
     <Compile Include="Domain\Events\CarCreatedEvent.cs" />
     <Compile Include="Domain\Events\CarCreationFailedEvent.cs" />
@@ -92,8 +93,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Projections\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -75,11 +75,13 @@ namespace Learning.StateManagement.Cqrs.Domain
         
         private void Perform<T, TState>(ICommand cmd, Action<T> execute) where T : Aggregate<TState> where TState : AggregateState
         {
-            var aggregate = _store.Get<T>(cmd.AggregateId);
-            if (aggregate == null)
+            var aggregateState = _store.Get<TState>(cmd.AggregateId);
+            if (aggregateState == null)
                 throw new Exception($"Could not find aggregate ({nameof(T)}): {cmd.AggregateId}");
+            var aggregate = (T)Activator.CreateInstance(typeof(T), aggregateState);
+
             execute(aggregate);
-            _store.Add(aggregate.Id, aggregate);
+            _store.Add<TState>(aggregate.Id, aggregate.State);
             aggregate.PendingEvents.ToList().ForEach(_eventBus.Publish);
         }
 
@@ -88,14 +90,14 @@ namespace Learning.StateManagement.Cqrs.Domain
             Perform<CarAggregate, CarState>(cmd, cmdSelector);
         }
 
-        private void Create<T, TState>(ICommand cmd, Action<T> execute) where T : Aggregate<TState>, new() where TState : AggregateState
+        private void Create<T, TState>(ICommand cmd, Action<T> execute) where T : Aggregate<TState> where TState : AggregateState
         {
-            var aggregate = _store.Get<T>(cmd.AggregateId);
-            if (aggregate != null)
+            var aggregateState = _store.Get<TState>(cmd.AggregateId);
+            if (aggregateState != null)
                 throw new Exception($"Aggregate with id: {cmd.AggregateId} already exists");
-            aggregate = new T();
+            var aggregate = Activator.CreateInstance<T>();
             execute(aggregate);
-            _store.Add(aggregate.Id, aggregate);
+            _store.Add<TState>(aggregate.Id, aggregate.State);
             aggregate.PendingEvents.ToList().ForEach(_eventBus.Publish);
         }
 

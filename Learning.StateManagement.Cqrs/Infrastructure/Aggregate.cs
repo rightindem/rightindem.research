@@ -9,11 +9,18 @@ namespace Learning.StateManagement.Cqrs.Infrastructure
         public Guid Id => State.Id;
         public T State { get; }
         public IList<IEvent> PendingEvents { get; }
+
         public Aggregate()
         {
             State = Activator.CreateInstance<T>();
             PendingEvents = new List<IEvent>();
         }
+        public Aggregate(T state)
+        {
+            State = state;
+            PendingEvents = new List<IEvent>();
+        }
+        
 
         public void Apply(IEvent @event, bool isNew = true)
         {

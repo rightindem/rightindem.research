@@ -6,6 +6,12 @@ namespace Learning.StateManagement.Cqrs.Domain
 {
     public class CarAggregate: Aggregate<CarState>
     {
+        public CarAggregate()
+        {
+        }
+        public CarAggregate(CarState state): base(state)
+        {
+        }
         public void Create(CreateCarCommand cmd)
         {
             if (this.State.IsCreated)

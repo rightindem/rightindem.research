@@ -10,6 +10,7 @@ using Learning.StateManagement.Cqrs.Domain;
 using Learning.StateManagement.Cqrs.Domain.Commands;
 using Learning.StateManagement.Cqrs.Domain.Events;
 using Learning.StateManagement.Cqrs.Infrastructure;
+using Learning.StateManagement.Cqrs.Projections;
 
 namespace Learning.StateManagement.Cqrs
 {
@@ -42,6 +43,8 @@ namespace Learning.StateManagement.Cqrs
             Console.WriteLine("4. Stop Engine");
             Console.WriteLine("5. Lock");
             Console.WriteLine("6. Unlock");
+            Console.WriteLine("7. Create Radom car");
+            Console.WriteLine("8. Report");
 
             int action;
             
@@ -55,27 +58,29 @@ namespace Learning.StateManagement.Cqrs
                 {
                     case 1:
                         commandBus.Dispatch(new StartIgnitionCommand() { AggregateId = carId });
-                        //car.StartIgnition(new StartIgnitionCommand() { AggregateId = carId });
                         break;
                     case 2:
                         commandBus.Dispatch(new StopIgnitionCommand() { AggregateId = carId });
-
                         break;
                     case 3:
                         commandBus.Dispatch(new StartEngineCommand() { AggregateId = carId });
-
                         break;
                     case 4:
                         commandBus.Dispatch(new StopEngineCommand() { AggregateId = carId });
-
                         break;
                     case 5:
                         commandBus.Dispatch(new LockCarCommand() { AggregateId = carId });
-
                         break;
                     case 6:
                         commandBus.Dispatch(new UnlockCarCommand() { AggregateId = carId });
-                        
+                        break;
+                    case 7:
+                        commandBus.Dispatch(new CreateCarCommand() { Id = Guid.NewGuid(), AggregateId = Guid.NewGuid(), Model = Guid.NewGuid().ToString().Substring(0, 4)});
+                        break;
+                    case 8:
+                        var keyValueStore = container.Resolve<IKeyValueStore>();
+                        var carsCreatedCount = keyValueStore.Get<int>(CarCounterProjection.Key);
+                        Console.WriteLine($"Total Cars Created: {carsCreatedCount}");
                         break;
                 }
             }
@@ -102,24 +107,6 @@ namespace Learning.StateManagement.Cqrs
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
             return builder.Build();
-        }
-    }
-
-    public class CarCounterProjection: IEventConsumer<CarCreatedEvent>
-    {
-        private readonly IKeyValueStore _store;
-        private string Key = nameof(CarCounterProjection);
-
-        public CarCounterProjection(IKeyValueStore store)
-        {
-            _store = store;
-        }
-        public void When(CarCreatedEvent @event)
-        {
-            var counter = _store.Get<int>(Key);
-            counter++;
-            _store.Add(Key, counter);
-            Console.WriteLine($"Total Cars Created: {counter}");
         }
     }
 }
