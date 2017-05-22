@@ -17,23 +17,13 @@ namespace Learning.StateManagement.Cqrs
             builder.RegisterType<InMemCommandBus>().As<ICommandBus>().SingleInstance();
             builder.RegisterType<InMemKeyValueStore>().As<IKeyValueStore>().SingleInstance();
 
-            var handlerTypes = GetHandlerTypes<ICommand>();
+            var handlerTypes = GetHandlerTypes<ICommand>().ToList();
+            handlerTypes.ForEach(x => builder.RegisterType(x));
 
-            foreach (var handlerType in handlerTypes)
-            {
+            var projectionTypes = GetProjectionTypes<IEvent>().ToList();
+            projectionTypes.ForEach(x => builder.RegisterType(x));
 
-                builder.RegisterType(handlerType);
-            }
-
-
-            
             base.Load(builder);
-        }
-
-        private IEnumerable<Type> GetCommands(Type type)
-        {
-            var commands = type.GetInterfaces().SelectMany(i => i.GetGenericArguments());
-            return commands;
         }
 
         private IEnumerable<Type> GetHandlerTypes<TCommand>() where TCommand : ICommand
@@ -41,17 +31,16 @@ namespace Learning.StateManagement.Cqrs
             var handlers = typeof(IHandle<>).Assembly.GetExportedTypes();
             var inheritingFromIHandle = handlers.Where(x => x.GetInterfaces().Any(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IHandle<>)));
             var usingICommand = inheritingFromIHandle.Where(h => h.GetInterfaces().Any(ii => ii.GetGenericArguments().Any(arg => typeof(TCommand).IsAssignableFrom(arg)))).ToList();
-
-   
-
-            var usingICommand2 = 
-                inheritingFromIHandle
-                .Where(h => h.GetInterfaces()
-                    .Any(ii => ii.GetGenericArguments()
-                        .Any(arg => typeof(TCommand).IsAssignableFrom(arg))
-                     )
-                ).ToList();
             return usingICommand;
+        }
+
+        private IEnumerable<Type> GetProjectionTypes<TEvent>() where TEvent : IEvent
+        {
+            var projections = typeof(IEventConsumer<>).Assembly.GetExportedTypes();
+            var inheritingFromIEventConsumer = projections.Where(x => x.GetInterfaces().Any(a => a.IsGenericType && a.GetGenericTypeDefinition() == typeof(IEventConsumer<>)));
+            var notAggregateStates = inheritingFromIEventConsumer.Where(x => !x.IsSubclassOf(typeof(AggregateState)));
+            var usingIEvent = notAggregateStates.Where(h => h.GetInterfaces().Any(ii => ii.GetGenericArguments().Any(arg => typeof(TEvent).IsAssignableFrom(arg)))).ToList();
+            return usingIEvent;
         }
     }
 }

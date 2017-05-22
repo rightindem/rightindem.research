@@ -2,31 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
 using Learning.StateManagement.Cqrs.Domain;
 using Learning.StateManagement.Cqrs.Domain.Commands;
+using Learning.StateManagement.Cqrs.Domain.Events;
 using Learning.StateManagement.Cqrs.Infrastructure;
 
 namespace Learning.StateManagement.Cqrs
 {
     class Program
     {
+        
 
         static void Main(string[] args)
         {
             var container = SetupIoC();
-
             var commandBus = container.Resolve<ICommandBus>();
+            var eventBus = container.Resolve<IEventBus>();
 
-            commandBus.RegisterHandler<CarHandler, CreateCarCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, LockCarCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, UnlockCarCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, StartEngineCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, StopEngineCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, StartIgnitionCommand>(x => x.Handle);
-            commandBus.RegisterHandler<CarHandler, StopIgnitionCommand>(x => x.Handle);
+            RegisterCommandHandlers(commandBus);
+            RegisterEventHandlers(eventBus);
 
             var carId = Guid.NewGuid();
 
@@ -83,11 +81,45 @@ namespace Learning.StateManagement.Cqrs
             }
         }
 
+        static void RegisterEventHandlers(IEventBus eventBus)
+        {
+            eventBus.Subscribe<CarCounterProjection, CarCreatedEvent>(x => x.When);
+        }
+
+        static void RegisterCommandHandlers(ICommandBus commandBus)
+        {
+            commandBus.RegisterHandler<CarHandler, CreateCarCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, LockCarCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, UnlockCarCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, StartEngineCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, StopEngineCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, StartIgnitionCommand>(x => x.Handle);
+            commandBus.RegisterHandler<CarHandler, StopIgnitionCommand>(x => x.Handle);
+        }
+
         static IContainer SetupIoC()
         {
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
             return builder.Build();
+        }
+    }
+
+    public class CarCounterProjection: IEventConsumer<CarCreatedEvent>
+    {
+        private readonly IKeyValueStore _store;
+        private string Key = nameof(CarCounterProjection);
+
+        public CarCounterProjection(IKeyValueStore store)
+        {
+            _store = store;
+        }
+        public void When(CarCreatedEvent @event)
+        {
+            var counter = _store.Get<int>(Key);
+            counter++;
+            _store.Add(Key, counter);
+            Console.WriteLine($"Total Cars Created: {counter}");
         }
     }
 }

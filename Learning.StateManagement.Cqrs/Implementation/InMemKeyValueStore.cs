@@ -15,8 +15,9 @@ namespace Learning.StateManagement.Cqrs.Implementation
         public T Get<T>(object key)
         {
             object result;
-            store.TryGetValue(key, out result);
-            return (T) result;
+            if (store.TryGetValue(key, out result))
+                return (T) result;
+            return default(T);
         }
     }
 }
