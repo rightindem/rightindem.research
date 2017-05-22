@@ -1,0 +1,6 @@
+c:\users\crist\documents\visual studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\bin\Debug\Learning.StateManagement.exe.config
+c:\users\crist\documents\visual studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\bin\Debug\Learning.StateManagement.exe
+c:\users\crist\documents\visual studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\bin\Debug\Learning.StateManagement.pdb
+c:\users\crist\documents\visual studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\obj\Debug\Learning.StateManagement.exe
+c:\users\crist\documents\visual studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\obj\Debug\Learning.StateManagement.pdb
+C:\Users\crist\Documents\Visual Studio 2017\Projects\Learning.StateManagement\Learning.StateManagement\obj\Debug\Learning.StateManagement.csprojResolveAssemblyReference.cache
