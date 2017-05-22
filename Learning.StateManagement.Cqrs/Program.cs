@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,31 +11,14 @@ using Learning.StateManagement.Cqrs.Infrastructure;
 
 namespace Learning.StateManagement.Cqrs
 {
-
-
-    public class Person
-    {
-        public void Greet<T>(T obj)
-        {
-            Console.WriteLine($"Greeting {obj}");
-        }
-
-        public void Ola<T, TC>(Func<T, Action<TC>> obj)
-        {
-            Console.WriteLine($"Ola {obj}");
-        }
-    }
-
     class Program
     {
-        private static IContainer Container;
-
 
         static void Main(string[] args)
         {
-            Container = SetupIoC();
+            var container = SetupIoC();
 
-            var commandBus = Container.Resolve<ICommandBus>();
+            var commandBus = container.Resolve<ICommandBus>();
 
             commandBus.RegisterHandler<CarHandler, CreateCarCommand>(x => x.Handle);
             commandBus.RegisterHandler<CarHandler, LockCarCommand>(x => x.Handle);
@@ -65,6 +46,10 @@ namespace Learning.StateManagement.Cqrs
             Console.WriteLine("6. Unlock");
 
             int action;
+            
+            //var car = new CarAggregate();
+
+
 
             while (Int32.TryParse(Console.ReadLine(), out action))
             {
@@ -72,7 +57,7 @@ namespace Learning.StateManagement.Cqrs
                 {
                     case 1:
                         commandBus.Dispatch(new StartIgnitionCommand() { AggregateId = carId });
-
+                        //car.StartIgnition(new StartIgnitionCommand() { AggregateId = carId });
                         break;
                     case 2:
                         commandBus.Dispatch(new StopIgnitionCommand() { AggregateId = carId });
@@ -95,7 +80,6 @@ namespace Learning.StateManagement.Cqrs
                         
                         break;
                 }
-                //car.PrintEvents();
             }
         }
 
@@ -104,69 +88,6 @@ namespace Learning.StateManagement.Cqrs
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
             return builder.Build();
-        }
-    }
-
-    public interface IKeyValueStore
-    {
-        void Add<T>(object key, T value);
-        T Get<T>(object key);
-    }
-
-    public class KeyValueStore : IKeyValueStore
-    {
-        private readonly ConcurrentDictionary<object, object> store = new ConcurrentDictionary<object, object>();
-
-        public void Add<T>(object key, T value)
-        {
-            store.AddOrUpdate(key, value, (o, o1) => value);
-        }
-
-        public T Get<T>(object key)
-        {
-            object result;
-            store.TryGetValue(key, out result);
-            return (T) result;
-        }
-    }
-
-
-    public static class InvocationHelper
-    {
-        public static MethodInfo GetMethod<T>(Expression<Func<T, object>> expression)
-        {
-            MethodCallExpression methodCall = (MethodCallExpression) expression.Body;
-            return methodCall.Method;
-        }
-
-
-        public static MethodInfo GetMethod(
-            Expression<Func<ICommandBus, Action<Func<Type, Action<ICommand>>>>> expression)
-        {
-            MethodCallExpression methodCall = (MethodCallExpression) expression.Body;
-            return methodCall.Method;
-        }
-
-        public static object InvokeGenericMethodWithDynamicTypeArguments<T>(T target,
-            Expression<Func<ICommandBus, Action<Func<Type, Action<ICommand>>>>> expression, 
-            object[] methodArguments,
-            params Type[] typeArguments)
-        {
-
-
-            var methodInfo = GetMethod(expression);
-            if (methodInfo.GetGenericArguments().Length != typeArguments.Length)
-                throw new ArgumentException(
-                    string.Format(
-                        "The method '{0}' has {1} type argument(s) but {2} type argument(s) were passed. The amounts must be equal.",
-                        methodInfo.Name,
-                        methodInfo.GetGenericArguments().Length,
-                        typeArguments.Length));
-
-            return methodInfo
-                .GetGenericMethodDefinition()
-                .MakeGenericMethod(typeArguments)
-                .Invoke(target, methodArguments);
         }
     }
 }

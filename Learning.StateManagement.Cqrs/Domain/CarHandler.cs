@@ -25,12 +25,6 @@ namespace Learning.StateManagement.Cqrs.Domain
             _store = store;
         }
 
-        
-        public void Create(ICommand cmd, Action<CarAggregate> cmdSelector)
-        {
-            Create<CarAggregate, CarState>(cmd, cmdSelector);
-        }
-
         public void Handle(CreateCarCommand cmd)
         {
             Create(cmd, car => car.Create(cmd));
@@ -40,11 +34,16 @@ namespace Learning.StateManagement.Cqrs.Domain
         {
             Perform(cmd, car => car.Lock(cmd));
 
-            //var car = _store.Get<CarAggregate>(cmd.AggregateId);
-            //car.Lock(cmd);
+            /* 
+             * The long way of doing Perform(cmd, car => car.Lock(cmd)) 
+             *
+            
+             var car = _store.Get<CarAggregate>(cmd.AggregateId);
+             car.Lock(cmd);
           
-            //car.PendingEvents.ToList().ForEach(_eventBus.Publish);
-            //_store.Add(car.Id, car);
+             car.PendingEvents.ToList().ForEach(_eventBus.Publish);
+             _store.Add(car.Id, car);
+             */
 
         }
 
@@ -73,6 +72,7 @@ namespace Learning.StateManagement.Cqrs.Domain
             Perform(cmd, car => car.StopIgnition(cmd));
         }
 
+        
         private void Perform<T, TState>(ICommand cmd, Action<T> execute) where T : Aggregate<TState> where TState : AggregateState
         {
             var aggregate = _store.Get<T>(cmd.AggregateId);
@@ -82,6 +82,12 @@ namespace Learning.StateManagement.Cqrs.Domain
             _store.Add(aggregate.Id, aggregate);
             aggregate.PendingEvents.ToList().ForEach(_eventBus.Publish);
         }
+
+        private void Perform(ICommand cmd, Action<CarAggregate> cmdSelector)
+        {
+            Perform<CarAggregate, CarState>(cmd, cmdSelector);
+        }
+
         private void Create<T, TState>(ICommand cmd, Action<T> execute) where T : Aggregate<TState>, new() where TState : AggregateState
         {
             var aggregate = _store.Get<T>(cmd.AggregateId);
@@ -92,10 +98,10 @@ namespace Learning.StateManagement.Cqrs.Domain
             _store.Add(aggregate.Id, aggregate);
             aggregate.PendingEvents.ToList().ForEach(_eventBus.Publish);
         }
-        private void Perform(ICommand cmd, Action<CarAggregate> cmdSelector)
-        {
-            Perform<CarAggregate, CarState>(cmd, cmdSelector);
-        }
 
+        private void Create(ICommand cmd, Action<CarAggregate> cmdSelector)
+        {
+            Create<CarAggregate, CarState>(cmd, cmdSelector);
+        }
     }
 }

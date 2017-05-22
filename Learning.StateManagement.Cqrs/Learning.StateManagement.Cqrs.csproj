@@ -49,9 +49,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Domain\CarAggregate.cs" />
+    <Compile Include="Domain\Events\CarCreatedEvent.cs" />
+    <Compile Include="Domain\Events\CarCreationFailedEvent.cs" />
     <Compile Include="Domain\CarState.cs" />
     <Compile Include="DependencyInjectionModule.cs" />
     <Compile Include="Domain\Commands\CreateCarCommand.cs" />
+    <Compile Include="Infrastructure\IKeyValueStore.cs" />
     <Compile Include="Infrastructure\Aggregate.cs" />
     <Compile Include="Infrastructure\AggregateState.cs" />
     <Compile Include="Domain\Enums.cs" />
@@ -75,6 +78,8 @@
     <Compile Include="Infrastructure\IFailedEvent.cs" />
     <Compile Include="Infrastructure\IHandle.cs" />
     <Compile Include="Implementation\InMemCommandBus.cs" />
+    <Compile Include="Implementation\InMemKeyValueStore.cs" />
+    <Compile Include="Common\InvocationHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Domain\Commands\StartEngineCommand.cs" />

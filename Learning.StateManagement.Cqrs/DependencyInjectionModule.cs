@@ -15,7 +15,7 @@ namespace Learning.StateManagement.Cqrs
         {
             builder.RegisterType<InMemEventBus>().As<IEventBus>().SingleInstance();
             builder.RegisterType<InMemCommandBus>().As<ICommandBus>().SingleInstance();
-            builder.RegisterType<KeyValueStore>().As<IKeyValueStore>().SingleInstance();
+            builder.RegisterType<InMemKeyValueStore>().As<IKeyValueStore>().SingleInstance();
 
             var handlerTypes = GetHandlerTypes<ICommand>();
 
